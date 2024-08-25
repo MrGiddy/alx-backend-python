@@ -31,5 +31,7 @@ class TestAccessNestedMap(unittest.TestCase):
             path: Sequence,
             expected: Exception) -> None:
         """test KeyError is raised for given inputs"""
-        with self.assertRaises(expected):
+        with self.assertRaises(expected) as context:
             access_nested_map(nested_map, path)
+
+        self.assertEqual(str(context.exception), repr(path[-1]))
