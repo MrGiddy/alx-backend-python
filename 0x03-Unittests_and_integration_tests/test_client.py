@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for client module"""
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import PropertyMock, patch, MagicMock
 from client import GithubOrgClient
 from parameterized import parameterized
 
@@ -28,3 +28,19 @@ class TestGithubOrgClient(unittest.TestCase):
         mocked_get_json.assert_called_once_with(expected_url)
 
         self.assertEqual(result, mock_response)
+
+    def test_public_repos_url(self) -> None:
+        """tests the `public_repos_url` property of GithubOrgClient"""
+        with patch(
+                'client.GithubOrgClient.org', new_callable=PropertyMock
+                ) as mocked_org:
+            mocked_org.return_value = {
+                'login': 'test-org',
+                'repos_url': 'https://api.github.com/orgs/test-org/repos'
+            }
+
+            test_org = GithubOrgClient('test-org')
+            result = test_org._public_repos_url
+
+            expected_url = 'https://api.github.com/orgs/test-org/repos'
+            self.assertEqual(result, expected_url)
