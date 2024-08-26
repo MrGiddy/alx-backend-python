@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tests for client module"""
+from typing import Dict
 import unittest
 from unittest.mock import PropertyMock, patch, MagicMock
 from client import GithubOrgClient
@@ -46,7 +47,7 @@ class TestGithubOrgClient(unittest.TestCase):
             self.assertEqual(result, expected_url)
 
     @patch('client.get_json')
-    def test_public_repos(self, mocked_get_json):
+    def test_public_repos(self, mocked_get_json: MagicMock) -> None:
         """test the `public_repos` method of GithubOrgClient"""
         mock_response = [
             {'id': 123, 'name': 'drumkit-wp'},
@@ -69,3 +70,13 @@ class TestGithubOrgClient(unittest.TestCase):
             mocked_public_repos_url.assert_called_once()
 
         mocked_get_json.assert_called_once()
+
+    @parameterized.expand([
+        ({'license': {"key": "my_license"}}, "my_license", True),
+        ({"license": {"key": "other_license"}}, "my_license", False),
+    ])
+    def test_has_license(self, repo: Dict, key: str, expected: bool) -> None:
+        """test `has_license` method of GithubOrgClient"""
+        test_org = GithubOrgClient('test-org')
+        result = test_org.has_license(repo, key)
+        self.assertEqual(result, expected)
