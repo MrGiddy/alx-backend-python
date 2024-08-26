@@ -106,8 +106,10 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
         def side_effect(url):
             if url in payloads:
-                return Mock(json=payloads.get(url))
-            return HTTPError
+                mock = Mock()
+                mock.json.return_value = payloads.get(url)
+                return mock
+            return Mock(side_effect=HTTPError)
 
         cls.get_patcher = patch('requests.get', side_effect=side_effect)
         cls.get_patcher.start()
@@ -116,3 +118,15 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
     def tearDownClass(cls) -> None:
         """tears down class fixtures after integration tests"""
         cls.get_patcher.stop()
+
+    def test_public_repos(self) -> None:
+        """integration test for GithubOrgClient.public_repos"""
+        test_org = GithubOrgClient('google')
+        result = test_org.public_repos()
+        self.assertEqual(result, self.expected_repos)
+
+    def test_public_repos_with_license(self) -> None:
+        """test public_repos with the argument license="apache-2.0"""
+        test_org = GithubOrgClient('google')
+        result = test_org.public_repos(license="apache-2.0")
+        self.assertEqual(result, self.apache2_repos)
